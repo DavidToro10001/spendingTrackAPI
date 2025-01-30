@@ -1,0 +1,12 @@
+ktor:
+    jwt:
+        secret : "superPrivateKey"
+        issuer : "http://127.0.0.1:8080/"
+        audience : "http://127.0.0.1:8080/v1"
+        realm : "Access to 'protected' routes"
+        validityInMs : 3600000
+    application:
+        modules:
+            - com.spendingTrack.ApplicationKt.module
+    deployment:
+        port: 8080
