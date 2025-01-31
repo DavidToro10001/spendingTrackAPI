@@ -14,7 +14,5 @@ This is an API for track personal spending and generate reports
 * Create endpoint to re-activate user
 
 ### Module Spending
-* Everything basically
-* Create table of spending (cost, date, category (should be a table by itself))
-* Create endpoints to put, delete and modify information by user
+* Create endpoints to delete and modify information by user
 * Create endpoints to get data (means, spending by date, months, what else?)

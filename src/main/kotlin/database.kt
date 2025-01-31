@@ -1,8 +1,10 @@
 package com.spendingTrack
 
 import Users
+import com.spendingTrack.com.moduleSpending.models.DefaultSpendCategories
+import com.spendingTrack.com.moduleSpending.models.Spendings
+import com.spendingTrack.com.moduleSpending.models.SpendCategories
 import io.ktor.server.application.*
-import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Files
@@ -26,5 +28,16 @@ fun Application.configureDatabase() {
     // tables creation
     transaction {
         SchemaUtils.create(Users)
+        SchemaUtils.create(SpendCategories)
+        SchemaUtils.create(Spendings)
+        // Insert spent categories
+        DefaultSpendCategories.entries.forEach { category ->
+            if (SpendCategories.select { SpendCategories.displayName eq category.displayName }.empty()) {
+                SpendCategories.insert {
+                    it[displayName] = category.displayName
+                }
+            }
+        }
+
     }
 }

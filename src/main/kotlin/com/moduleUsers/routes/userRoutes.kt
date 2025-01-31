@@ -1,4 +1,4 @@
-package com.spending.track.com.moduleUsers.routes
+package com.moduleUsers.routes
 
 import User
 import com.spending.track.com.moduleUsers.*
