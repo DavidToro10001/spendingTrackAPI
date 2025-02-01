@@ -75,7 +75,7 @@ fun Route.userRoutes() {
                     HttpStatusCode.InternalServerError,
                     "Failed to edit user info"
                 )
-                call.respond(HttpStatusCode.OK, "User updated correctly $updateRequest")
+                call.respond(HttpStatusCode.OK, "User updated correctly")
             }
 
             post("/logout") {
