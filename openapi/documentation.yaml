@@ -1,0 +1,391 @@
+openapi: 3.0.1
+info:
+  title: Spending Track API
+  description: API to manage user expenses.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local server
+tags:
+  - name: Users
+    description: Endpoints related to user management.
+  - name: Spendings
+    description: Endpoints related to user spending tracking.
+
+paths:
+  /user/get/{email}:
+    get:
+      summary: Retrieve user information
+      tags:
+        - Users
+      description: Fetches an object with user information, using the email.
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Object with the user information, password always returns null for security (anyways passwords are encrypted)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "John Doe"
+                  email:
+                    type: string
+                    example: "john.doe@example.com"
+                  password:
+                    type: string
+                    example: null
+                  isActive:
+                    type: boolean
+                    example: true
+  /user/register:
+    post:
+      summary: Register a new user
+      tags:
+        - Users
+      description: Creates a new user account.
+      requestBody:
+        required: true
+        description: user info in json to register
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "201":
+          description: User created successfully.
+        "400":
+          description: Bad request. Missing or invalid parameters.
+        "500":
+          description: Internal server error.
+  /user/login:
+    post:
+      summary: User login
+      tags:
+        - Users
+      description: Authenticates a user and returns a JWT token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLogin"
+      responses:
+        "200":
+          description: Login successful. Returns a JWT token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "400":
+          description: Missing email or password.
+        "401":
+          description: Unauthorized. Invalid credentials.
+
+  /user/update/{email}:
+    patch:
+      summary: Update user information
+      tags:
+        - Users
+      description: Updates user details. Requires authentication. There is no way to delete user from database, use this endpoint to change isActive to false
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: email
+          in: path
+          required: true
+          description: The email of the user to be updated.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: could send one or many object parameters in json
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserEdit"
+      responses:
+        "200":
+          description: User updated successfully.
+        "400":
+          description: Invalid email format.
+        "403":
+          description: Forbidden. User is not authorized to update this account.
+        "500":
+          description: Internal server error.
+
+  /user/logout:
+    post:
+      summary: Logout user
+      tags:
+        - Users
+      description: Logs out a user by blacklisting the token.
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: User logged out successfully.
+        "400":
+          description: Missing or invalid token.
+
+  /spending/{email}:
+    get:
+      summary: Get all spending records for a user
+      tags:
+        - Spendings
+      description: Retrieves all spending data for the given user email.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: email
+          in: path
+          required: true
+          description: The email of the user whose spending records are to be retrieved.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Returns the list of spending records.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Spending"
+        "400":
+          description: Invalid email format.
+        "403":
+          description: Forbidden. User is not authorized.
+
+  /spending/add/{email}:
+    post:
+      summary: Add a new spending record
+      tags:
+        - Spendings
+      description: Saves a new spending record in the database, category must be one object in pre defined list.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: email
+          in: path
+          required: true
+          description: The email of the user adding the spend.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Spending"
+      responses:
+        "201":
+          description: Spending record created successfully.
+        "400":
+          description: Invalid email format.
+        "500":
+          description: Internal server error.
+
+  /spending/delete/{email}/{spendId}:
+    delete:
+      summary: Delete a spending record
+      tags:
+        - Spendings
+      description: Deletes a spending record by ID for a given user.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: email
+          in: path
+          required: true
+          description: The email of the user.
+          schema:
+            type: string
+        - name: spendId
+          in: path
+          required: true
+          description: The ID of the spending record to delete.
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Spending record deleted successfully.
+        "400":
+          description: Invalid email or spendId.
+        "403":
+          description: Forbidden. User is not authorized.
+        "500":
+          description: Internal server error.
+
+  /spending/update/{email}/{spendId}:
+    patch:
+      summary: Update a spending record
+      tags:
+        - Spendings
+      description: Updates a spending record by ID for a given user, category must be one object in pre defined list.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: email
+          in: path
+          required: true
+          description: The email of the user.
+          schema:
+            type: string
+        - name: spendId
+          in: path
+          required: true
+          description: The ID of the spending record to update.
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        description: could send one or many object parameters in json
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SpendingEdit"
+      responses:
+        "200":
+          description: Spending record updated successfully.
+        "400":
+          description: Invalid email or spendId.
+        "403":
+          description: Forbidden. User is not authorized.
+        "500":
+          description: Internal server error.
+
+  /spending/spendByDate/{email}/{start_date}/{end_date}:
+    get:
+      summary: Get spending data in a date range
+      tags:
+        - Spendings
+      description: Retrieves spending records for a user within a specified date range, retrieves sum of costs, mean and percentage of the category cost above total costs.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: email
+          in: path
+          required: true
+          description: The email of the user.
+          schema:
+            type: string
+        - name: start_date
+          in: path
+          required: true
+          description: Start date of the range (YYYY-MM-DD).
+          schema:
+            type: string
+        - name: end_date
+          in: path
+          required: true
+          description: End date of the range (YYYY-MM-DD).
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Returns spending data for the given date range, grouped by category.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpendInfo"
+        "400":
+          description: Invalid email or date range.
+        "403":
+          description: Forbidden. User is not authorized.
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          example: "john.doe@example.com"
+        password:
+          type: string
+          example: "securepassword123"
+
+    UserEdit:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "John Doe renamed"
+        isActive:
+          type: boolean
+          example: false
+
+    UserLogin:
+      type: object
+      properties:
+        email:
+          type: string
+          example: "john.doe@example.com"
+        password:
+          type: string
+          example: "securepassword123"
+
+    Spending:
+      type: object
+      properties:
+        userEmail:
+          type: string
+          example: "john.doe@example.com"
+        name:
+          type: string
+          example: "Groceries"
+        cost:
+          type: number
+          example: 50.0
+        date:
+          type: string
+          example: "2024-01-31"
+        category:
+          type: string
+          example: "Food"
+    SpendingEdit:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Groceries renamed"
+        cost:
+          type: number
+          example: 75.25
+    SpendInfo:
+      type: array
+      items:
+        type: object
+        properties:
+          category:
+            type: string
+            example: Food
+          spendInfo:
+            type: object
+            properties:
+              totalCost:
+                type: double
+                example: 90.75
+              mean:
+                type: double
+                example: 45.38
+              percentage:
+                type: double
+                example: 72.62905162064826
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

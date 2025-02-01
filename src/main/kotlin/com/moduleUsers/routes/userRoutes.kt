@@ -12,11 +12,6 @@ import io.ktor.server.routing.*
 
 fun Route.userRoutes() {
     route("/user") {
-        get ("/get"){
-            val users = getUsers()
-            call.respond(HttpStatusCode.OK, users)
-        }
-
         post ("/register"){
             val newUser = call.receive<User>()
             // get user parameters
@@ -53,6 +48,25 @@ fun Route.userRoutes() {
         }
 
         authenticate("auth-jwt") {
+            get ("/get/{email}"){
+                val userEmail = call.parameters["email"]
+
+                if (userEmail == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid email")
+                    return@get
+                }
+                // Verify that user is logged
+                val principal = call.authentication.principal<JWTPrincipal>()
+                val tokenEmail = principal?.payload?.getClaim("email")?.asString()
+
+                if (tokenEmail == null || tokenEmail != userEmail) {
+                    call.respond(HttpStatusCode.Forbidden, "You are not authorized to modify this user")
+                    return@get
+                }
+
+                val user = getUser(userEmail)
+                call.respond(HttpStatusCode.OK, user)
+            }
             patch("/update/{email}") {
                 val userEmail = call.parameters["email"]
 

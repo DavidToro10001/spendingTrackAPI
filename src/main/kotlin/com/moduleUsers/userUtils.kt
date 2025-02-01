@@ -49,16 +49,15 @@ fun addUser(name: String, email: String, password: String): Boolean {
     }
 }
 
-fun getUsers(): List<User> {
+fun getUser(email: String): User {
     return transaction {
-        Users.selectAll().map {
-            // password will be null by default, to not return passwords (anyway they are encrypted)
+        Users.select { Users.email eq email }.map {
             User(
                 name = it[Users.name],
                 email = it[Users.email],
                 isActive = it[Users.isActive]
             )
-        }
+        }.first()
     }
 }
 

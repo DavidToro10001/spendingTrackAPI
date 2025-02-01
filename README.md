@@ -17,13 +17,14 @@ This is an API for track personal spending and generate reports
 * Can change or delete this spends
 * Can get spend information grouped by category for a user in a range of dates, this will be used to generate reports in the frontend
 
+## Documentation
+All endpoints are documented using swagger, use {api_deployment_path}/swagger to see documentation
+
 ## TODO
 ### Module users
 * When user is not active, then login should not work
 * Create endpoint to re-activate user
-* Documentation with swagger
 * Testing
 
 ### Module Spending
-* Documentation with swagger
 * Testing
